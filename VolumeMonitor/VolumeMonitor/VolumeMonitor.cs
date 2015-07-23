@@ -121,6 +121,20 @@ namespace VolumeMonitor
         }
 
         /// <summary>
+        /// Removes all devices from monitoring list
+        /// </summary>
+        public void RemoveAll()
+        {
+            MMDevice[] devices = new MMDevice[Devices.Count];
+            Devices.CopyTo(devices, 0);
+
+            foreach (MMDevice device in devices)
+            {
+                this.Remove(device);
+            }
+        }
+
+        /// <summary>
         /// Get MMDevices for this system
         /// </summary>
         /// <param name="df">DataFlow.Capture for Input (Microphones), DataFlow.Render for Output (Soundcards), DataFlow.All for all</param>
@@ -139,13 +153,18 @@ namespace VolumeMonitor
             return devices;
         }
 
+        public bool ValueInThreshold(int volume)
+        {
+            return volume >= ThresholdMinimum && volume <= ThresholdMaximum;
+        }
+
         private void timer_Tick(object sender, EventArgs e)
         {
             foreach (MMDevice device in Devices)
             {
                 int volume = this.calculateVolume(device);
 
-                if (volume >= ThresholdMinimum && volume <= ThresholdMaximum)
+                if (this.ValueInThreshold(volume))
                 {
                     if (OnThresholdHit != null && (!CooldownEnabled || currentCooldown <= 0))
                     {
